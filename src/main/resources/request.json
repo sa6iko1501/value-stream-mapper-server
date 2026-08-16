@@ -1,0 +1,196 @@
+{
+   "value_stream_map": {
+      "title": "My First Value-Stream Map!",
+      "process_tables": {
+         "table_1": {
+            "id": "53c2aa99-4a9f-4f5a-8177-482d18756b8f",
+            "title": "Process A",
+            "inventory": {
+               "amount": "50",
+               "unit": "pcs"
+            },
+            "rows": [
+               {
+                  "row_name": "C/T",
+                  "value": "85",
+                  "unit": "sec"
+               },
+               {
+                  "row_name": "C/0",
+                  "value": "12",
+                  "unit": "min"
+               },
+               {
+                  "row_name": "Uptime",
+                  "value": "95",
+                  "unit": "percent"
+               },
+               {
+                  "row_name": "Shifts",
+                  "value": "1",
+                  "unit": "number"
+               },
+               {
+                  "row_name": "Working time",
+                  "value": "8",
+                  "unit": "hours"
+               }
+            ]
+         },
+         "table_2": {
+            "id": "da87d1a8-1edb-4c15-92b0-c2233e5dcacf",
+            "title": "Process B",
+            "inventory": {
+               "amount": "50",
+               "unit": "pcs"
+            },
+            "rows": [
+               {
+                  "row_name": "C/T",
+                  "value": "85",
+                  "unit": "sec"
+               },
+               {
+                  "row_name": "C/0",
+                  "value": "12",
+                  "unit": "min"
+               },
+               {
+                  "row_name": "Uptime",
+                  "value": "95",
+                  "unit": "percent"
+               },
+               {
+                  "row_name": "Shifts",
+                  "value": "1",
+                  "unit": "number"
+               },
+               {
+                  "row_name": "Working time",
+                  "value": "8",
+                  "unit": "hours"
+               }
+            ]
+         },
+         "table_3": {
+            "id": "93ca7272-1845-459b-b1ee-ec02dc774aca",
+            "title": "Process C",
+            "inventory": {
+               "amount": "50",
+               "unit": "pcs"
+            },
+            "rows": [
+               {
+                  "row_name": "C/T",
+                  "value": "85",
+                  "unit": "sec"
+               },
+               {
+                  "row_name": "C/0",
+                  "value": "12",
+                  "unit": "min"
+               },
+               {
+                  "row_name": "Uptime",
+                  "value": "95",
+                  "unit": "percent"
+               },
+               {
+                  "row_name": "Shifts",
+                  "value": "1",
+                  "unit": "number"
+               },
+               {
+                  "row_name": "Working time",
+                  "value": "8",
+                  "unit": "hours"
+               }
+            ]
+         },
+         "table_4": {
+            "id": "34cbb1d8-6760-4491-bb67-0565c61b0562",
+            "title": "Process D",
+            "rows": [
+               {
+                  "row_name": "C/T",
+                  "value": "85",
+                  "unit": "sec"
+               },
+               {
+                  "row_name": "C/0",
+                  "value": "12",
+                  "unit": "min"
+               },
+               {
+                  "row_name": "Uptime",
+                  "value": "95",
+                  "unit": "percent"
+               },
+               {
+                  "row_name": "Shifts",
+                  "value": "1",
+                  "unit": "number"
+               },
+               {
+                  "row_name": "Working time",
+                  "value": "8",
+                  "unit": "hours"
+               }
+            ],
+            "inventory": {
+               "amount": "50",
+               "unit": "pcs"
+            }
+         }
+      },
+      "customers": {
+         "customer_1": {
+            "id": "73d7c988-9628-434b-93cb-93f370061380",
+            "requirement": [
+               {
+                  "product": "toys",
+                  "amountPerUnit": "40",
+                  "unit": "tonnes",
+                  "time": "month"
+               },
+               {
+                  "material": "shampoo",
+                  "amountPerUnit": "50",
+                  "unit": "tonnes",
+                  "time": "month"
+               }
+            ]
+         }
+      },
+      "suppliers":{
+         "supplier_1": {
+            "id": "73d7c988-9628-434b-93cb-93f370061380",
+            "materials": [
+               {
+                  "material": "lumber",
+                  "amountPerUnit": "100",
+                  "unit": "tonnes",
+                  "time": "month"
+               },
+               {
+                  "material": "steel",
+                  "amountPerUnit": "50",
+                  "unit": "tonnes",
+                  "time": "month"
+               }
+            ]
+         }
+      },
+      "metrics":{
+         "takt": "123",
+         "metric_1": "bla bla",
+         "metric_2": "bla bla"
+      },
+      "identified_problem_zones":{
+         "problem_1": {
+            "id_table": "34cbb1d8-6760-4491-bb67-0565c61b0562",
+            "problem": "C/T < Takt"
+         }
+      }
+   }
+}
