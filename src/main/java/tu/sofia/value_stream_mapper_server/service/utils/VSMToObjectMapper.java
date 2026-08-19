@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
+import tu.sofia.value_stream_mapper_server.dto.CustomerDTO;
+import tu.sofia.value_stream_mapper_server.dto.CustomerOutputDTO;
 import tu.sofia.value_stream_mapper_server.dto.InventoryDTO;
 import tu.sofia.value_stream_mapper_server.dto.ProcessTableDTO;
 import tu.sofia.value_stream_mapper_server.dto.SupplierDTO;
@@ -29,7 +31,9 @@ public class VSMToObjectMapper {
         String title = vsm.getTitle();
         LocalDateTime date = vsm.getDate();
         SupplyDTO supply = extractSupply(vsm);
-        return new VSMObjectResultDTO(new VSMObjectDTO(id, title, date, tables, supply));
+        CustomerOutputDTO customerOutput = extractCustomerOutput(vsm);
+        return new VSMObjectResultDTO(
+                new VSMObjectDTO(id, title, date, tables, supply, customerOutput));
     }
 
     private List<ProcessTableDTO> extractTables(VSMObject vsm) {
@@ -45,6 +49,7 @@ public class VSMToObjectMapper {
             ProcessTableDTO dtoToAdd = new ProcessTableDTO();
             dtoToAdd.setId(pt.getId());
             dtoToAdd.setTitle(pt.getTitle());
+            dtoToAdd.setPosition(pt.getPosition());
             List<TableRow> rows = pt.getRows().stream().toList();
             if (!rows.isEmpty()) {
                 List<TableRowDTO> rowsForDTO = extractTableRows(rows);
@@ -91,6 +96,26 @@ public class VSMToObjectMapper {
                                                 x.getUnitName(),
                                                 x.getDailySupply()))
                         .toList();
-        return new SupplyDTO(supply.getId(), suppliers);
+        return new SupplyDTO(
+                supply.getId(), suppliers, supply.getAmount(), supply.getUnit().getName());
+    }
+
+    private CustomerOutputDTO extractCustomerOutput(VSMObject vsm) {
+        var customerOutput = vsm.getCustomerOutput();
+        List<CustomerDTO> customers =
+                customerOutput.getCustomers().stream()
+                        .map(
+                                x ->
+                                        new CustomerDTO(
+                                                x.getId(),
+                                                x.getName(),
+                                                x.getUnitName(),
+                                                x.getDailyRequiredOutput()))
+                        .toList();
+        return new CustomerOutputDTO(
+                customerOutput.getId(),
+                customers,
+                customerOutput.getAmount(),
+                customerOutput.getUnit().getName());
     }
 }

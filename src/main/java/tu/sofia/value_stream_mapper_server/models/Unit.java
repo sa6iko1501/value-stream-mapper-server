@@ -34,4 +34,8 @@ public class Unit {
     @OneToMany(mappedBy = "unit")
     @JsonIgnore
     private Set<TableInventory> inventories;
+
+    @OneToMany(mappedBy = "unit")
+    @JsonIgnore
+    private Set<Supply> supplies;
 }

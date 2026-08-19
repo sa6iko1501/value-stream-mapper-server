@@ -17,4 +17,10 @@ public class SupplyDTO {
 
     @JsonProperty("suppliers")
     private List<SupplierDTO> suppliers;
+
+    @JsonProperty("amount")
+    private Double amount;
+
+    @JsonProperty("unit")
+    private String unit;
 }

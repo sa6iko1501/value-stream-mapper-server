@@ -29,4 +29,7 @@ public class VSMObjectDTO {
 
     @JsonProperty("supply")
     private SupplyDTO supply;
+
+    @JsonProperty("customer_output")
+    private CustomerOutputDTO customerOutput;
 }

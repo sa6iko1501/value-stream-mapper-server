@@ -7,5 +7,6 @@ public enum UnitType {
     PALLET,
     CART,
     HOUR,
-    NUMBER
+    NUMBER,
+    DAYS
 }

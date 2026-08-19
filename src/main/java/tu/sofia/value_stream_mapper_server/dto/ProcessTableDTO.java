@@ -25,4 +25,7 @@ public class ProcessTableDTO {
 
     @JsonProperty("title")
     private String title;
+
+    @JsonProperty("position")
+    private int position;
 }

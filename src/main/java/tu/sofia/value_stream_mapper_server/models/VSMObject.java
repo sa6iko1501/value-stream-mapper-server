@@ -44,5 +44,9 @@ public class VSMObject {
     @JoinColumn(name = "supply_id", referencedColumnName = "id")
     private Supply supply;
 
+    @OneToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "customer_output_id", referencedColumnName = "id")
+    private CustomerOutput customerOutput;
+
     public VSMObject() {}
 }
