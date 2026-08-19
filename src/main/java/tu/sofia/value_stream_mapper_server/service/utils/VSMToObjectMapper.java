@@ -3,12 +3,15 @@ package tu.sofia.value_stream_mapper_server.service.utils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 import tu.sofia.value_stream_mapper_server.dto.InventoryDTO;
 import tu.sofia.value_stream_mapper_server.dto.ProcessTableDTO;
+import tu.sofia.value_stream_mapper_server.dto.SupplierDTO;
+import tu.sofia.value_stream_mapper_server.dto.SupplyDTO;
 import tu.sofia.value_stream_mapper_server.dto.TableRowDTO;
 import tu.sofia.value_stream_mapper_server.dto.VSMObjectDTO;
 import tu.sofia.value_stream_mapper_server.dto.VSMObjectResultDTO;
@@ -25,12 +28,16 @@ public class VSMToObjectMapper {
         List<ProcessTableDTO> tables = extractTables(vsm);
         String title = vsm.getTitle();
         LocalDateTime date = vsm.getDate();
-        return new VSMObjectResultDTO(new VSMObjectDTO(id, title, date, tables));
+        SupplyDTO supply = extractSupply(vsm);
+        return new VSMObjectResultDTO(new VSMObjectDTO(id, title, date, tables, supply));
     }
 
     private List<ProcessTableDTO> extractTables(VSMObject vsm) {
         List<ProcessTableDTO> result = new ArrayList<>();
-        List<ProcessTable> pts = vsm.getProcessTables().stream().toList();
+        List<ProcessTable> pts =
+                vsm.getProcessTables().stream()
+                        .sorted(Comparator.comparing(ProcessTable::getPosition))
+                        .toList();
         if (pts.isEmpty()) {
             return result;
         }
@@ -45,7 +52,8 @@ public class VSMToObjectMapper {
             }
             TableInventory ti = pt.getInventory();
             if (ti != null) {
-                dtoToAdd.setInventory(new InventoryDTO(ti.getId(), ti.getAmount(), ti.getUnit()));
+                dtoToAdd.setInventory(
+                        new InventoryDTO(ti.getId(), ti.getAmount(), vsm.getUnit().getName()));
             }
             result.add(dtoToAdd);
         }
@@ -68,6 +76,21 @@ public class VSMToObjectMapper {
             }
             result.add(rowToAdd);
         }
-        return result;
+        return result.stream().sorted(Comparator.comparing(TableRowDTO::getRowName)).toList();
+    }
+
+    private SupplyDTO extractSupply(VSMObject vsm) {
+        var supply = vsm.getSupply();
+        List<SupplierDTO> suppliers =
+                supply.getSuppliers().stream()
+                        .map(
+                                x ->
+                                        new SupplierDTO(
+                                                x.getId(),
+                                                x.getName(),
+                                                x.getUnitName(),
+                                                x.getDailySupply()))
+                        .toList();
+        return new SupplyDTO(supply.getId(), suppliers);
     }
 }

@@ -1,7 +1,6 @@
 /* 2026 Aleksandar Stoyanov */
 package tu.sofia.value_stream_mapper_server.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,12 +27,12 @@ public class ProcessTable {
     private UUID id;
 
     private String title;
+    private int position;
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "inventory_id", referencedColumnName = "id")
     private TableInventory inventory;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "processTable", cascade = CascadeType.REMOVE)
     private Set<TableRow> rows;
 

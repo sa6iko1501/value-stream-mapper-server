@@ -7,7 +7,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -29,9 +32,17 @@ public class VSMObject {
     private String title;
     private LocalDateTime date;
 
+    @ManyToOne
+    @JoinColumn(name = "unit_id")
+    private Unit unit;
+
     @JsonIgnore
     @OneToMany(mappedBy = "vsm", cascade = CascadeType.REMOVE)
     private Set<ProcessTable> processTables;
+
+    @OneToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "supply_id", referencedColumnName = "id")
+    private Supply supply;
 
     public VSMObject() {}
 }

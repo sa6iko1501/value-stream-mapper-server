@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
@@ -27,7 +29,10 @@ public class TableInventory {
     private UUID id;
 
     private Double amount;
-    private String unit;
+
+    @ManyToOne
+    @JoinColumn(name = "unit_id")
+    private Unit unit;
 
     @OneToOne(mappedBy = "inventory")
     private ProcessTable processTable;

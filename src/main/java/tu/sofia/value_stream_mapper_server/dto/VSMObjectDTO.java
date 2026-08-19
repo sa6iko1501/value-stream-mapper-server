@@ -26,4 +26,7 @@ public class VSMObjectDTO {
 
     @JsonProperty("process_tables")
     private List<ProcessTableDTO> tables;
+
+    @JsonProperty("supply")
+    private SupplyDTO supply;
 }
