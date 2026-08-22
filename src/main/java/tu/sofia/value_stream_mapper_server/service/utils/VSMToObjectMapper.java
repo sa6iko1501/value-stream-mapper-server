@@ -58,7 +58,7 @@ public class VSMToObjectMapper {
             TableInventory ti = pt.getInventory();
             if (ti != null) {
                 dtoToAdd.setInventory(
-                        new InventoryDTO(ti.getId(), ti.getAmount(), vsm.getUnit().getName()));
+                        new InventoryDTO(ti.getId(), ti.getAmount(), vsm.getUnit().getName(), ti.getNextInPosition()));
             }
             result.add(dtoToAdd);
         }

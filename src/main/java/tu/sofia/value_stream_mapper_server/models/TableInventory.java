@@ -36,4 +36,6 @@ public class TableInventory {
 
     @OneToOne(mappedBy = "inventory")
     private ProcessTable processTable;
+
+    private UUID nextInPosition;
 }

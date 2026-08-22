@@ -19,4 +19,7 @@ public class InventoryDTO {
 
     @JsonProperty("unit")
     private String unit;
+
+    @JsonProperty("nextInLine")
+    private UUID nextInPosition;
 }
