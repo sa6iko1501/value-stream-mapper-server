@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import tu.sofia.value_stream_mapper_server.dto.VSMDashboardResultDTO;
-import tu.sofia.value_stream_mapper_server.dto.VSMObjectResultDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMDashboardResultDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectResultDTO;
 import tu.sofia.value_stream_mapper_server.service.VSMService;
 
 @RestController

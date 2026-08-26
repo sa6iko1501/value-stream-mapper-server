@@ -38,4 +38,7 @@ public class Unit {
     @OneToMany(mappedBy = "unit")
     @JsonIgnore
     private Set<Supply> supplies;
+
+    @OneToMany(mappedBy = "unit")
+    private Set<TableRow> rows;
 }

@@ -8,5 +8,7 @@ public enum UnitType {
     CART,
     HOUR,
     NUMBER,
-    DAYS
+    DAY,
+    SECOND,
+    PERCENT
 }

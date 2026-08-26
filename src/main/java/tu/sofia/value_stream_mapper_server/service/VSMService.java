@@ -8,18 +8,18 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tu.sofia.value_stream_mapper_server.dao.VSMObjectDAO;
-import tu.sofia.value_stream_mapper_server.dto.VSMDashboardResultDTO;
-import tu.sofia.value_stream_mapper_server.dto.VSMObjectResultDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMDashboardResultDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectResultDTO;
 import tu.sofia.value_stream_mapper_server.models.VSMObject;
+import tu.sofia.value_stream_mapper_server.service.utils.VSMToDTOMapper;
 import tu.sofia.value_stream_mapper_server.service.utils.VSMToIDAndDateMapper;
-import tu.sofia.value_stream_mapper_server.service.utils.VSMToObjectMapper;
 
 @Service
 @AllArgsConstructor
 public class VSMService {
     @Autowired private final VSMObjectDAO vsmRepo;
     @Autowired private final VSMToIDAndDateMapper vsmToIDAndDateMapper;
-    @Autowired private final VSMToObjectMapper vsmToObjectMapper;
+    @Autowired private final VSMToDTOMapper vsmToDTOMapper;
 
     public VSMDashboardResultDTO findAllSavedVSMIds() {
         List<VSMObject> allVSM = vsmRepo.findAll();
@@ -30,7 +30,7 @@ public class VSMService {
     public VSMObjectResultDTO findById(UUID id) {
         Optional<VSMObject> vsmOptional = vsmRepo.findById(id);
         if (vsmOptional.isPresent()) {
-            return vsmToObjectMapper.toDTO(vsmOptional.get());
+            return vsmToDTOMapper.toDTO(vsmOptional.get());
         }
         throw new IllegalArgumentException("The requested vsm was not found");
     }

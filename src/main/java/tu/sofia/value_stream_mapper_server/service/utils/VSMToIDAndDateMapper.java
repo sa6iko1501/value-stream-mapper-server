@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
-import tu.sofia.value_stream_mapper_server.dto.VSMDashboardResultDTO;
-import tu.sofia.value_stream_mapper_server.dto.VSMDashboardResultObjectDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMDashboardResultDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMDashboardResultObjectDTO;
 import tu.sofia.value_stream_mapper_server.models.VSMObject;
 
 @Service

@@ -33,7 +33,7 @@ public class ProcessTable {
     @JoinColumn(name = "inventory_id", referencedColumnName = "id")
     private TableInventory inventory;
 
-    @OneToMany(mappedBy = "processTable", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "processTable", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<TableRow> rows;
 
     @ManyToOne

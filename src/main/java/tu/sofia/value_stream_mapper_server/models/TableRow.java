@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import lombok.Setter;
 @Setter
 @Table(name = "table_row")
 @NoArgsConstructor
+@AllArgsConstructor
 public class TableRow {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,18 +27,23 @@ public class TableRow {
 
     private String row_name;
     private Double value;
-    private String unit;
+
+    @ManyToOne
+    @JoinColumn(name = "unit_id")
+    private Unit unit;
+
+    private RowType rowType;
 
     @ManyToOne
     @JoinColumn(name = "process_table_id", nullable = false)
     private ProcessTable processTable;
 
     public TableRow(
-            UUID id, String row_name, Double value, String unit, ProcessTable processTable) {
-        this.id = id;
+            String row_name, Double value, Unit unit, RowType rowType, ProcessTable processTable) {
         this.row_name = row_name;
         this.value = value;
         this.unit = unit;
+        this.rowType = rowType;
         this.processTable = processTable;
     }
 }

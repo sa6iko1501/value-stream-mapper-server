@@ -1,5 +1,5 @@
 /* 2026 Aleksandar Stoyanov */
-package tu.sofia.value_stream_mapper_server.dto;
+package tu.sofia.value_stream_mapper_server.dto.response.vsm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -13,19 +13,16 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class ProcessTableDTO {
+public class CustomerOutputDTO {
     @JsonProperty("id")
     private UUID id;
 
-    @JsonProperty("inventory")
-    private InventoryDTO inventory;
+    @JsonProperty("customers")
+    private List<CustomerDTO> customers;
 
-    @JsonProperty("rows")
-    private List<TableRowDTO> rows;
+    @JsonProperty("amount")
+    private Double amount;
 
-    @JsonProperty("title")
-    private String title;
-
-    @JsonProperty("position")
-    private int position;
+    @JsonProperty("unit")
+    private String unit;
 }
