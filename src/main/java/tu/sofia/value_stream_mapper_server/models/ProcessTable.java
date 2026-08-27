@@ -3,8 +3,6 @@ package tu.sofia.value_stream_mapper_server.models;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -22,14 +20,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @jakarta.persistence.Table(name = "process_table")
 public class ProcessTable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Id private UUID id;
 
     private String title;
     private int position;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "inventory_id", referencedColumnName = "id")
     private TableInventory inventory;
 
@@ -39,13 +35,4 @@ public class ProcessTable {
     @ManyToOne
     @JoinColumn(name = "vsm_id")
     private VSMObject vsm;
-
-    public ProcessTable(
-            UUID id, String title, TableInventory inventory, Set<TableRow> rows, VSMObject vsm) {
-        this.id = id;
-        this.title = title;
-        this.inventory = inventory;
-        this.rows = rows;
-        this.vsm = vsm;
-    }
 }

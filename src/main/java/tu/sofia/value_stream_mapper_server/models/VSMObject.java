@@ -37,16 +37,14 @@ public class VSMObject {
     private Unit unit;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "vsm", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "vsm", cascade = CascadeType.ALL)
     private Set<ProcessTable> processTables;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "supply_id", referencedColumnName = "id")
     private Supply supply;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "customer_output_id", referencedColumnName = "id")
     private CustomerOutput customerOutput;
-
-    public VSMObject() {}
 }

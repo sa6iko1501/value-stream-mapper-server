@@ -17,7 +17,7 @@ public class UnitController {
 
     @GetMapping(value = "/unit", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<?> getVsmById() {
+    public ResponseEntity<?> getAllUnits() {
         try {
             var resultDTO = unitService.getAllUnits();
             return ResponseEntity.ok(resultDTO);

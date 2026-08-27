@@ -26,6 +26,9 @@ public class ProcessTableDTO {
     @JsonProperty("title")
     private String title;
 
+    @JsonProperty("vsm_id")
+    private UUID vsmId;
+
     @JsonProperty("position")
     private int position;
 }

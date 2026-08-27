@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import tu.sofia.value_stream_mapper_server.dto.response.unit.UnitDTO;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +30,9 @@ public class VSMObjectDTO {
 
     @JsonProperty("supply")
     private SupplyDTO supply;
+
+    @JsonProperty("unit")
+    private UnitDTO unit;
 
     @JsonProperty("customer_output")
     private CustomerOutputDTO customerOutput;

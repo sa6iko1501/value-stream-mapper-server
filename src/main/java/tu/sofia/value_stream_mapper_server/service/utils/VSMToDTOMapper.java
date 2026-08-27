@@ -21,6 +21,7 @@ import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectResultDTO;
 import tu.sofia.value_stream_mapper_server.models.ProcessTable;
 import tu.sofia.value_stream_mapper_server.models.TableInventory;
 import tu.sofia.value_stream_mapper_server.models.TableRow;
+import tu.sofia.value_stream_mapper_server.models.Unit;
 import tu.sofia.value_stream_mapper_server.models.VSMObject;
 
 @Service
@@ -33,8 +34,16 @@ public class VSMToDTOMapper {
         LocalDateTime date = vsm.getDate();
         SupplyDTO supply = extractSupply(vsm);
         CustomerOutputDTO customerOutput = extractCustomerOutput(vsm);
+        Unit unit = vsm.getUnit();
         return new VSMObjectResultDTO(
-                new VSMObjectDTO(id, title, date, tables, supply, customerOutput));
+                new VSMObjectDTO(
+                        id,
+                        title,
+                        date,
+                        tables,
+                        supply,
+                        new UnitDTO(unit.getId(), unit.getName(), unit.getUnitType()),
+                        customerOutput));
     }
 
     private List<ProcessTableDTO> extractTables(VSMObject vsm) {
@@ -51,6 +60,7 @@ public class VSMToDTOMapper {
             dtoToAdd.setId(pt.getId());
             dtoToAdd.setTitle(pt.getTitle());
             dtoToAdd.setPosition(pt.getPosition());
+            dtoToAdd.setVsmId(vsm.getId());
             List<TableRow> rows = pt.getRows().stream().toList();
             if (!rows.isEmpty()) {
                 List<TableRowDTO> rowsForDTO = extractTableRows(rows);
