@@ -22,6 +22,6 @@ public class SupplierDTO {
     @JsonProperty("unit_name")
     private String unitName;
 
-    @JsonProperty("daily_supply")
-    private Double dailySupply;
+    @JsonProperty("supply")
+    private Double supply;
 }

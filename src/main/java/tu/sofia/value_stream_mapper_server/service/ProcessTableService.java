@@ -1,6 +1,7 @@
 /* 2026 Aleksandar Stoyanov */
 package tu.sofia.value_stream_mapper_server.service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -8,7 +9,6 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import tu.sofia.value_stream_mapper_server.dao.ProcessTableDAO;
 import tu.sofia.value_stream_mapper_server.dao.TableRowDAO;
 import tu.sofia.value_stream_mapper_server.dao.UnitDAO;
@@ -26,7 +26,56 @@ public class ProcessTableService {
     @Autowired private TableRowDAO tableRowRepo;
     @Autowired private UnitDAO unitRepo;
 
-    @Transactional
+    public List<ProcessTableDTO> updatePositioning(UUID vsmId, List<ProcessTableDTO> dtos) {
+        final var vsm =
+                vsmRepo.findById(vsmId)
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                String.format(
+                                                        "No value-stream map with the following id"
+                                                                + " found: %s",
+                                                        vsmId)));
+        var vsmTables = vsm.getProcessTables();
+        List<ProcessTable> vsmTablesOrderedByNewPositioning = new ArrayList<>();
+        dtos.stream()
+                .sorted(Comparator.comparing(ProcessTableDTO::getPosition))
+                .forEach(
+                        x -> {
+                            var correspondingTable =
+                                    vsmTables.stream()
+                                            .filter(tbl -> tbl.getId().equals(x.getId()))
+                                            .findAny()
+                                            .orElseThrow(
+                                                    () ->
+                                                            new IllegalStateException(
+                                                                    "Mismatch between positioning"
+                                                                            + " request and actual"
+                                                                            + " tables state"));
+                            vsmTablesOrderedByNewPositioning.add(correspondingTable);
+                        });
+        if (vsmTablesOrderedByNewPositioning.size() > 1) {
+            for (int i = 0; i < vsmTables.size(); i++) {
+                var table = vsmTablesOrderedByNewPositioning.get(i);
+                table.setPosition(i + 1);
+                if (i == vsmTables.size() - 1) {
+                    table.getInventory().setNextInPosition(null);
+                } else {
+                    table.getInventory()
+                            .setNextInPosition(vsmTablesOrderedByNewPositioning.get(i + 1).getId());
+                }
+            }
+        } else {
+            var table = vsmTablesOrderedByNewPositioning.getFirst();
+            table.setPosition(1);
+            table.getInventory().setNextInPosition(null);
+        }
+
+        vsmRepo.save(vsm);
+
+        return dtos;
+    }
+
     public ProcessTableDTO updateProcessTable(ProcessTableDTO processTableDTO) {
         var processTableOptional = processTableRepository.findById(processTableDTO.getId());
         if (processTableOptional.isEmpty()) {
@@ -241,6 +290,5 @@ public class ProcessTableService {
                         .toList();
         rows.removeAll(toBeDeleted);
         obj.getInventory().setAmount(dto.getInventory().getAmount());
-        System.out.println(rows);
     }
 }

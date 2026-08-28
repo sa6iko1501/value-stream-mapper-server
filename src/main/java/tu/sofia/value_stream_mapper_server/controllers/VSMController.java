@@ -1,6 +1,7 @@
 /* 2026 Aleksandar Stoyanov */
 package tu.sofia.value_stream_mapper_server.controllers;
 
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.ProcessTableDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMDashboardResultDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectResultDTO;
+import tu.sofia.value_stream_mapper_server.service.ProcessTableService;
 import tu.sofia.value_stream_mapper_server.service.VSMService;
 
 @RestController
@@ -20,6 +25,7 @@ import tu.sofia.value_stream_mapper_server.service.VSMService;
 @AllArgsConstructor
 public class VSMController {
     @Autowired private final VSMService vsmService;
+    @Autowired private final ProcessTableService tableService;
 
     @GetMapping(value = "/vsm", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<VSMDashboardResultDTO> getVsmIds() {
@@ -35,6 +41,18 @@ public class VSMController {
             VSMObjectResultDTO resultDTO = vsmService.findById(id);
             return ResponseEntity.ok(resultDTO);
         } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PutMapping(value = "/vsm/{id}/positioning", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> updatePositioning(
+            @PathVariable UUID id, @RequestBody List<ProcessTableDTO> request) {
+        try {
+            var result = tableService.updatePositioning(id, request);
+            return ResponseEntity.ok(result);
+        } catch (IllegalStateException | IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }

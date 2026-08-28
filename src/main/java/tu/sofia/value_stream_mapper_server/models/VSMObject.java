@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -24,6 +25,7 @@ import lombok.Setter;
 @Setter
 @Table(name = "vsm")
 @AllArgsConstructor
+@NoArgsConstructor
 public class VSMObject {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
