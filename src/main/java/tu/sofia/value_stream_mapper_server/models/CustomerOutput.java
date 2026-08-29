@@ -31,7 +31,7 @@ public class CustomerOutput {
 
     private Double amount;
 
-    @OneToMany(mappedBy = "customerOutput", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "customerOutput", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Customer> customers;
 
     @OneToOne(mappedBy = "customerOutput")

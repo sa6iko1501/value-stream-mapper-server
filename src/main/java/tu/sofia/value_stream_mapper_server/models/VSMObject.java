@@ -39,7 +39,7 @@ public class VSMObject {
     private Unit unit;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "vsm", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "vsm", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProcessTable> processTables;
 
     @OneToOne(cascade = CascadeType.ALL)

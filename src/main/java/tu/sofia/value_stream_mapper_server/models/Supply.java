@@ -31,7 +31,7 @@ public class Supply {
 
     private Double amount;
 
-    @OneToMany(mappedBy = "supply", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "supply", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Supplier> suppliers;
 
     @OneToOne(mappedBy = "supply")

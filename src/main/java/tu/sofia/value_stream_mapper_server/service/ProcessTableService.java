@@ -18,6 +18,7 @@ import tu.sofia.value_stream_mapper_server.models.ProcessTable;
 import tu.sofia.value_stream_mapper_server.models.TableInventory;
 import tu.sofia.value_stream_mapper_server.models.TableRow;
 import tu.sofia.value_stream_mapper_server.models.Unit;
+import tu.sofia.value_stream_mapper_server.models.VSMObject;
 
 @Service
 public class ProcessTableService {
@@ -27,15 +28,7 @@ public class ProcessTableService {
     @Autowired private UnitDAO unitRepo;
 
     public List<ProcessTableDTO> updatePositioning(UUID vsmId, List<ProcessTableDTO> dtos) {
-        final var vsm =
-                vsmRepo.findById(vsmId)
-                        .orElseThrow(
-                                () ->
-                                        new IllegalArgumentException(
-                                                String.format(
-                                                        "No value-stream map with the following id"
-                                                                + " found: %s",
-                                                        vsmId)));
+        final var vsm = getVsm(vsmId);
         var vsmTables = vsm.getProcessTables();
         List<ProcessTable> vsmTablesOrderedByNewPositioning = new ArrayList<>();
         dtos.stream()
@@ -169,6 +162,11 @@ public class ProcessTableService {
         }
         if (toBeDeleted.getPosition() == 1) {
             vsm.getProcessTables().remove(toBeDeleted);
+            var tables =
+                    vsm.getProcessTables().stream()
+                            .sorted(Comparator.comparing(ProcessTable::getPosition))
+                            .toList();
+            tables.forEach(x -> x.setPosition(x.getPosition() - 1));
             processTableRepository.delete(toBeDeleted);
         }
         if (toBeDeleted.getPosition() > 1 && toBeDeleted.getPosition() < size) {
@@ -290,5 +288,16 @@ public class ProcessTableService {
                         .toList();
         rows.removeAll(toBeDeleted);
         obj.getInventory().setAmount(dto.getInventory().getAmount());
+    }
+
+    private VSMObject getVsm(UUID vsmId) {
+        return vsmRepo.findById(vsmId)
+                .orElseThrow(
+                        () ->
+                                new IllegalArgumentException(
+                                        String.format(
+                                                "No value-stream map with the following id"
+                                                        + " found: %s",
+                                                vsmId)));
     }
 }

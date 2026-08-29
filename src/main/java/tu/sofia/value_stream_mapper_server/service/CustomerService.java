@@ -1,0 +1,119 @@
+/* 2026 Aleksandar Stoyanov */
+package tu.sofia.value_stream_mapper_server.service;
+
+import java.util.UUID;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import tu.sofia.value_stream_mapper_server.dao.VSMObjectDAO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.CustomerOutputDTO;
+import tu.sofia.value_stream_mapper_server.models.Customer;
+import tu.sofia.value_stream_mapper_server.models.CustomerOutput;
+import tu.sofia.value_stream_mapper_server.models.VSMObject;
+
+@Service
+@NoArgsConstructor
+public class CustomerService {
+    @Autowired private VSMObjectDAO vsmRepo;
+
+    public CustomerOutputDTO createCustomer(UUID vsmId, CustomerOutputDTO dto) {
+        final var vsm = getVsm(vsmId);
+
+        final var customerOutput = vsm.getCustomerOutput();
+
+        dto.getCustomers().stream()
+                .forEach(
+                        x -> {
+                            if (x.getId() == null) {
+                                var customer = new Customer();
+                                customer.setName(x.getName());
+                                customer.setUnitName(vsm.getUnit().getName());
+                                customer.setDailyRequiredOutput(x.getDailyRequiredOutput());
+                                customer.setId(UUID.randomUUID());
+                                customer.setCustomerOutput(customerOutput);
+                                customerOutput.getCustomers().add(customer);
+                            }
+                        });
+
+        customerOutput.setAmount(calculateTotalRequirement(customerOutput));
+        vsmRepo.save(vsm);
+
+        return dto;
+    }
+
+    public CustomerOutputDTO updateCustomerOutput(UUID vsmId, CustomerOutputDTO dto) {
+        final var vsm = getVsm(vsmId);
+
+        final var customerOutput = vsm.getCustomerOutput();
+
+        dto.getCustomers().stream()
+                .forEach(
+                        x -> {
+                            var matchingCustomer =
+                                    customerOutput.getCustomers().stream()
+                                            .filter(customer -> customer.getId().equals(x.getId()))
+                                            .findAny()
+                                            .orElseThrow(
+                                                    () ->
+                                                            new IllegalStateException(
+                                                                    "Mismatch between customer"
+                                                                            + " request and actual"
+                                                                            + " customer output"
+                                                                            + " state"));
+
+                            matchingCustomer.setDailyRequiredOutput(x.getDailyRequiredOutput());
+                            matchingCustomer.setUnitName(vsm.getUnit().getName());
+                            matchingCustomer.setName(x.getName());
+                        });
+
+        customerOutput.setAmount(calculateTotalRequirement(customerOutput));
+        customerOutput.setUnit(vsm.getUnit());
+        vsmRepo.save(vsm);
+        return dto;
+    }
+
+    public boolean deleteCustomer(UUID vsmId, UUID customerId) {
+        final var vsm = getVsm(vsmId);
+
+        var customers = vsm.getCustomerOutput().getCustomers();
+
+        var toBeDeleted =
+                customers.stream()
+                        .filter(x -> x.getId().equals(customerId))
+                        .findAny()
+                        .orElseThrow(
+                                () ->
+                                        new IllegalStateException(
+                                                "Mismatch between customer"
+                                                        + " request and actual"
+                                                        + " customer output"
+                                                        + " state"));
+
+        boolean deleted = customers.remove(toBeDeleted);
+
+        vsm.getCustomerOutput().setAmount(calculateTotalRequirement(vsm.getCustomerOutput()));
+
+        vsmRepo.save(vsm);
+        return deleted;
+    }
+
+    private VSMObject getVsm(UUID vsmId) {
+        return vsmRepo.findById(vsmId)
+                .orElseThrow(
+                        () ->
+                                new IllegalArgumentException(
+                                        String.format(
+                                                "No value-stream map with the following id"
+                                                        + " found: %s",
+                                                vsmId)));
+    }
+
+    private double calculateTotalRequirement(CustomerOutput customerOutput) {
+        double totalRequirement = 0;
+        for (Customer customer : customerOutput.getCustomers()) {
+            totalRequirement += customer.getDailyRequiredOutput();
+        }
+
+        return totalRequirement;
+    }
+}

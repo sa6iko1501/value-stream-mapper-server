@@ -3,6 +3,7 @@ package tu.sofia.value_stream_mapper_server.controllers;
 
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,7 +34,7 @@ public class ProcessTableController {
     public ResponseEntity<?> createTable(@RequestBody ProcessTableDTO request) {
         try {
             var result = processTableService.createProcessTable(request);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
