@@ -95,6 +95,7 @@ public class ProcessTableService {
                         .map(
                                 x -> {
                                     return new TableRow(
+                                            UUID.randomUUID(),
                                             x.getRowName(),
                                             x.getValue(),
                                             allUnits.stream()
@@ -264,6 +265,7 @@ public class ProcessTableService {
 
                                 TableRow newRow =
                                         new TableRow(
+                                                UUID.randomUUID(),
                                                 rowDto.getRowName(),
                                                 rowDto.getValue(),
                                                 unit,

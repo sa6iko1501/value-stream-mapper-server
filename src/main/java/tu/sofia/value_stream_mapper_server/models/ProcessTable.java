@@ -25,7 +25,7 @@ public class ProcessTable {
     private String title;
     private int position;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "inventory_id", referencedColumnName = "id")
     private TableInventory inventory;
 

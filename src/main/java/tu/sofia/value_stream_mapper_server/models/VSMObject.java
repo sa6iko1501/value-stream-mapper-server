@@ -4,8 +4,6 @@ package tu.sofia.value_stream_mapper_server.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -27,9 +25,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VSMObject {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Id private UUID id;
 
     private String title;
     private LocalDateTime date;
@@ -42,11 +38,11 @@ public class VSMObject {
     @OneToMany(mappedBy = "vsm", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProcessTable> processTables;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "supply_id", referencedColumnName = "id")
     private Supply supply;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "customer_output_id", referencedColumnName = "id")
     private CustomerOutput customerOutput;
 }

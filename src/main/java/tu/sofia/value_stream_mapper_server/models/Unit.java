@@ -3,8 +3,6 @@ package tu.sofia.value_stream_mapper_server.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -20,9 +18,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "unit_table")
 public class Unit {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Id private UUID id;
 
     private String name;
     private UnitType unitType;

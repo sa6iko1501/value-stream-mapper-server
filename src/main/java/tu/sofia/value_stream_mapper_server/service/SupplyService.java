@@ -99,7 +99,7 @@ public class SupplyService {
                                                 vsmId)));
     }
 
-    private double calculateTotalSupply(Supply supply) {
+    public double calculateTotalSupply(Supply supply) {
         double totalSupply = 0;
         for (Supplier supplier : supply.getSuppliers()) {
             totalSupply += supplier.getDailySupply();

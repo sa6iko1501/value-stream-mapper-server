@@ -19,7 +19,7 @@ public class UnitController {
     @ResponseBody
     public ResponseEntity<?> getAllUnits() {
         try {
-            var resultDTO = unitService.getAllUnits();
+            var resultDTO = unitService.getAllUnitsAsDTO();
             return ResponseEntity.ok(resultDTO);
         } catch (IllegalStateException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());

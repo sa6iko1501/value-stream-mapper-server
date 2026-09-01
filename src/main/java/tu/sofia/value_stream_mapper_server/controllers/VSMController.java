@@ -5,17 +5,22 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.ProcessTableDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMDashboardResultDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectResultDTO;
 import tu.sofia.value_stream_mapper_server.service.ProcessTableService;
 import tu.sofia.value_stream_mapper_server.service.VSMService;
@@ -52,6 +57,40 @@ public class VSMController {
         try {
             var result = tableService.updatePositioning(id, request);
             return ResponseEntity.ok(result);
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PutMapping(value = "/vsm/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> updateVSMTitle(
+            @PathVariable UUID id, @RequestParam(value = "title") String title) {
+        try {
+            var result = vsmService.updateVSMTitle(id, title);
+            return ResponseEntity.ok(result);
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/vsm", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> createVSM(@RequestBody VSMObjectDTO request) {
+        try {
+            var result = vsmService.createVsmObj(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @DeleteMapping(value = "/vsm/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> deleteVsmObject(@PathVariable UUID id) {
+        try {
+            var result = vsmService.deleteVSM(id);
+            return ResponseEntity.noContent().build();
         } catch (IllegalStateException | IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }

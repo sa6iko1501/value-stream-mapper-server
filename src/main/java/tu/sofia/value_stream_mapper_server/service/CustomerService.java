@@ -108,7 +108,7 @@ public class CustomerService {
                                                 vsmId)));
     }
 
-    private double calculateTotalRequirement(CustomerOutput customerOutput) {
+    public double calculateTotalRequirement(CustomerOutput customerOutput) {
         double totalRequirement = 0;
         for (Customer customer : customerOutput.getCustomers()) {
             totalRequirement += customer.getDailyRequiredOutput();
