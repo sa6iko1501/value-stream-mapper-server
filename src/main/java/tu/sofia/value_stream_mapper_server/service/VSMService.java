@@ -4,8 +4,6 @@ package tu.sofia.value_stream_mapper_server.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +30,7 @@ import tu.sofia.value_stream_mapper_server.models.TotalLeadTime;
 import tu.sofia.value_stream_mapper_server.models.Unit;
 import tu.sofia.value_stream_mapper_server.models.UnitType;
 import tu.sofia.value_stream_mapper_server.models.VSMObject;
+import tu.sofia.value_stream_mapper_server.service.utils.LeadTimeUtils;
 import tu.sofia.value_stream_mapper_server.service.utils.VSMToDTOMapper;
 import tu.sofia.value_stream_mapper_server.service.utils.VSMToIDAndDateMapper;
 
@@ -63,6 +62,14 @@ public class VSMService {
         vsm.setBreaktime(dto.getBreaktime());
         vsm.setLengthOfShifts(dto.getLengthOfShifts());
         applyUpdatesToProcessTables(vsm);
+        vsm.getTotalLeadTime().getLeadTimes().clear();
+        HashMap<Double, Double> leadTimesMap =
+                LeadTimeUtils.createLeadTimesMap(vsm.getProcessTables().stream().toList(), vsm);
+        LeadTimeUtils.createLeadTimes(
+                leadTimesMap,
+                vsm.getProcessTables().stream().toList(),
+                vsm.getTotalLeadTime(),
+                vsm);
         vsmRepo.save(vsm);
         return dto;
     }
@@ -118,13 +125,14 @@ public class VSMService {
         objToCreate.setSupply(placeHolderSupply);
 
         TotalLeadTime totalLeadTime =
-                new TotalLeadTime(UUID.randomUUID(), 0, 0, objToCreate, new HashSet<>());
+                new TotalLeadTime(UUID.randomUUID(), 0, 0, 0, objToCreate, new HashSet<>());
         objToCreate.setTotalLeadTime(totalLeadTime);
         applyUpdatesToProcessTables(objToCreate);
         HashMap<Double, Double> leadTimesMap =
-                createLeadTimesMap(objToCreate.getProcessTables().stream().toList(), objToCreate);
+                LeadTimeUtils.createLeadTimesMap(
+                        objToCreate.getProcessTables().stream().toList(), objToCreate);
         List<LeadTime> calculateLeadTimes =
-                createLeadTimes(
+                LeadTimeUtils.createLeadTimes(
                         leadTimesMap,
                         objToCreate.getProcessTables().stream().toList(),
                         totalLeadTime,
@@ -199,7 +207,7 @@ public class VSMService {
         pt1.setInventory(
                 new TableInventory(
                         UUID.randomUUID(),
-                        BigDecimal.valueOf(600.0 + Math.random() * 3800)
+                        BigDecimal.valueOf(160.0 + Math.random() * 320)
                                 .setScale(0, RoundingMode.UP)
                                 .doubleValue(),
                         vsm.getUnit(),
@@ -208,7 +216,7 @@ public class VSMService {
         pt2.setInventory(
                 new TableInventory(
                         UUID.randomUUID(),
-                        BigDecimal.valueOf(600.0 + Math.random() * 3800)
+                        BigDecimal.valueOf(160.0 + Math.random() * 320)
                                 .setScale(0, RoundingMode.UP)
                                 .doubleValue(),
                         vsm.getUnit(),
@@ -217,7 +225,7 @@ public class VSMService {
         pt3.setInventory(
                 new TableInventory(
                         UUID.randomUUID(),
-                        BigDecimal.valueOf(600.0 + Math.random() * 3800)
+                        BigDecimal.valueOf(160.0 + Math.random() * 320)
                                 .setScale(0, RoundingMode.UP)
                                 .doubleValue(),
                         vsm.getUnit(),
@@ -226,111 +234,13 @@ public class VSMService {
         pt4.setInventory(
                 new TableInventory(
                         UUID.randomUUID(),
-                        BigDecimal.valueOf(600.0 + Math.random() * 3800)
+                        BigDecimal.valueOf(160.0 + Math.random() * 320)
                                 .setScale(0, RoundingMode.UP)
                                 .doubleValue(),
                         vsm.getUnit(),
                         pt4,
                         null));
         return List.of(pt1, pt2, pt3, pt4);
-    }
-
-    private HashMap<Double, Double> createLeadTimesMap(
-            List<ProcessTable> processTables, VSMObject vsm) {
-        List<ProcessTable> ordered =
-                processTables.stream()
-                        .sorted(Comparator.comparing(ProcessTable::getPosition))
-                        .toList();
-        var supplyInventoryAmount = vsm.getSupply().getInventoryAmount();
-        // Due to the strange nature of the calculation we will store the values by position. Ex:
-        // table 3 will be stored as KV pair(3,value) it's inventory will be stored as KV pair((3,5)
-        // , value)
-        HashMap<Double, Double> valuesByPositionMap = new HashMap<>();
-        valuesByPositionMap.put(0.5, supplyInventoryAmount);
-        Double lastPosition = null;
-        for (ProcessTable processTable : ordered) {
-            double processTablePosition = processTable.getPosition();
-            valuesByPositionMap.put(
-                    Double.valueOf(processTablePosition),
-                    leadTimeService.getCycleTimeInSecondsDouble(processTable));
-            valuesByPositionMap.put(
-                    Double.valueOf(processTablePosition + 0.5),
-                    processTable.getInventory().getAmount());
-            lastPosition = Double.valueOf(processTablePosition + 0.5);
-        }
-        if (lastPosition != null) {
-            valuesByPositionMap.put(lastPosition + 0.5, vsm.getCustomerOutput().getTakt());
-        }
-        return valuesByPositionMap;
-    }
-
-    private List<LeadTime> createLeadTimes(
-            HashMap<Double, Double> leadTimeMap,
-            List<ProcessTable> processTables,
-            TotalLeadTime totalLeadTime,
-            VSMObject vsm) {
-        List<ProcessTable> ordered =
-                processTables.stream()
-                        .sorted(Comparator.comparing(ProcessTable::getPosition))
-                        .toList();
-        double actualIndex = 0.5;
-        double taktPosition = (double) leadTimeMap.size() / 2;
-        List<LeadTime> result = new ArrayList<>();
-        for (int i = 0; i < leadTimeMap.size(); i++) {
-            Double value = leadTimeMap.get(actualIndex);
-            int casted = (int) actualIndex;
-            if (casted != actualIndex) {
-                if (actualIndex == 0.5) {
-                    BigDecimal leadTimeValue =
-                            BigDecimal.valueOf(value)
-                                    .divide(
-                                            BigDecimal.valueOf(leadTimeMap.get(actualIndex + 0.5)),
-                                            6,
-                                            RoundingMode.UP);
-                    LeadTime leadTime =
-                            new LeadTime(
-                                    UUID.randomUUID(),
-                                    vsm.getSupply().getId(),
-                                    leadTimeValue.setScale(0, RoundingMode.UP).doubleValue(),
-                                    i+1,
-                                    totalLeadTime);
-                    totalLeadTime.getLeadTimes().add(leadTime);
-                    result.add(leadTime);
-                } else {
-                    UUID inventoryId = ordered.get(casted-1).getInventory().getId();
-                    BigDecimal leadTimeValue =
-                            BigDecimal.valueOf(value)
-                                    .divide(
-                                            BigDecimal.valueOf(leadTimeMap.get(actualIndex + 0.5)),
-                                            6,
-                                            RoundingMode.UP);
-                    LeadTime leadTime =
-                            new LeadTime(
-                                    UUID.randomUUID(),
-                                    inventoryId,
-                                    leadTimeValue.setScale(0, RoundingMode.UP).doubleValue(),
-                                    i+1,
-                                    totalLeadTime);
-                    totalLeadTime.getLeadTimes().add(leadTime);
-                    result.add(leadTime);
-                }
-            } else {
-                if (actualIndex == taktPosition) {
-                    UUID customerOutputId = vsm.getCustomerOutput().getId();
-                    LeadTime leadTime = new LeadTime(UUID.randomUUID(), customerOutputId, vsm.getCustomerOutput().getTakt(), i + 1, totalLeadTime);
-                    totalLeadTime.getLeadTimes().add(leadTime);
-                    result.add(leadTime);
-                } else {
-                    UUID processTableId = ordered.get(casted-1).getId();
-                    LeadTime leadTime =
-                            new LeadTime(UUID.randomUUID(), processTableId, value, i+1, totalLeadTime);
-                    totalLeadTime.getLeadTimes().add(leadTime);
-                    result.add(leadTime);
-                }
-            }
-            actualIndex += 0.5;
-        }
-        return result;
     }
 
     private List<TableRow> initPlaceHolderRows(ProcessTable processTable, List<Unit> units) {
@@ -359,7 +269,7 @@ public class VSMService {
         cycleTime.setProcessTable(processTable);
         cycleTime.setRow_name("Cycle Time");
         cycleTime.setValue(
-                BigDecimal.valueOf(20.0 + Math.random() * 65.0)
+                BigDecimal.valueOf(80 + Math.random() * 520)
                         .setScale(0, RoundingMode.UP)
                         .doubleValue());
         TableRow uptime = new TableRow();
@@ -390,12 +300,12 @@ public class VSMService {
         TableRow changeOverTime = new TableRow();
         changeOverTime.setId(UUID.randomUUID());
         changeOverTime.setUnit(
-                units.stream().filter(x -> x.getUnitType().equals(UnitType.HOUR)).findAny().get());
+                units.stream().filter(x -> x.getUnitType().equals(UnitType.SECOND)).findAny().get());
         changeOverTime.setRowType(RowType.CO);
         changeOverTime.setProcessTable(processTable);
         changeOverTime.setRow_name("Changeover Time");
         changeOverTime.setValue(
-                BigDecimal.valueOf(Math.random() + 0.1).setScale(1, RoundingMode.UP).doubleValue());
+                BigDecimal.valueOf(300 + Math.random() * 3600).setScale(1, RoundingMode.UP).doubleValue());
 
         return List.of(cycleTime, uptime, changeOverTime, workers, processTime);
     }

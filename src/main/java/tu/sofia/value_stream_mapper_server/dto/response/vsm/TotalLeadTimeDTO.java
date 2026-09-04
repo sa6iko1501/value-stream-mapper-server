@@ -1,12 +1,12 @@
+/* 2026 Aleksandar Stoyanov */
 package tu.sofia.value_stream_mapper_server.dto.response.vsm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,10 +14,16 @@ import java.util.UUID;
 public class TotalLeadTimeDTO {
     @JsonProperty("id")
     private UUID id;
+
     @JsonProperty("lead_time")
     private double leadTime;
+
     @JsonProperty("value_added")
     private double valueAdded;
+
+    @JsonProperty("value_added_ratio")
+    private double valueAddedRatio;
+
     @JsonProperty("lead_times")
     private List<LeadTimeDTO> leadTimes;
 }

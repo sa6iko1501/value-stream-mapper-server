@@ -30,6 +30,9 @@ public class TotalLeadTime {
     @Column(name = "lead_time")
     private double leadTime;
 
+    @Column(name = "value_added_ratio")
+    private double valueAddedRatio;
+
     @OneToOne(mappedBy = "totalLeadTime")
     private VSMObject vsm;
 

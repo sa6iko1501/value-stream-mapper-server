@@ -10,15 +10,25 @@ import tu.sofia.value_stream_mapper_server.dto.response.vsm.SupplyDTO;
 import tu.sofia.value_stream_mapper_server.models.Supplier;
 import tu.sofia.value_stream_mapper_server.models.Supply;
 import tu.sofia.value_stream_mapper_server.models.VSMObject;
+import tu.sofia.value_stream_mapper_server.service.utils.LeadTimeUtils;
 
 @Service
 public class SupplyService {
+    @Autowired private LeadTimeService leadTimeService;
     @Autowired private VSMObjectDAO vsmRepo;
 
     public SupplyInventoryDTO updateSupplyInventory(UUID vsmId, SupplyInventoryDTO dto) {
         var vsm = getVsm(vsmId);
-
         vsm.getSupply().setInventoryAmount(dto.getSupplyInventory());
+        vsm.getTotalLeadTime().getLeadTimes().clear();
+        var leadTimesMap =
+                LeadTimeUtils.createLeadTimesMap(vsm.getProcessTables().stream().toList(), vsm);
+        LeadTimeUtils.createLeadTimes(
+                leadTimesMap,
+                vsm.getProcessTables().stream().toList(),
+                vsm.getTotalLeadTime(),
+                vsm);
+        leadTimeService.calculateTotalLeadTime(vsm.getTotalLeadTime(), vsm);
         vsmRepo.save(vsm);
         return dto;
     }

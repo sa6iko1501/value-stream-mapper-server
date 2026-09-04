@@ -24,6 +24,7 @@ import tu.sofia.value_stream_mapper_server.models.TableRow;
 import tu.sofia.value_stream_mapper_server.models.Unit;
 import tu.sofia.value_stream_mapper_server.models.UnitType;
 import tu.sofia.value_stream_mapper_server.models.VSMObject;
+import tu.sofia.value_stream_mapper_server.service.utils.LeadTimeUtils;
 
 @Service
 public class ProcessTableService {
@@ -31,6 +32,7 @@ public class ProcessTableService {
     @Autowired private VSMObjectDAO vsmRepo;
     @Autowired private TableRowDAO tableRowRepo;
     @Autowired private UnitDAO unitRepo;
+    @Autowired private LeadTimeService leadTimeService;
 
     public List<ProcessTableDTO> updatePositioning(UUID vsmId, List<ProcessTableDTO> dtos) {
         final var vsm = getVsm(vsmId);
@@ -69,6 +71,15 @@ public class ProcessTableService {
             table.getInventory().setNextInPosition(null);
         }
 
+        vsm.getTotalLeadTime().getLeadTimes().clear();
+        var leadTimesMap =
+                LeadTimeUtils.createLeadTimesMap(vsm.getProcessTables().stream().toList(), vsm);
+        LeadTimeUtils.createLeadTimes(
+                leadTimesMap,
+                vsm.getProcessTables().stream().toList(),
+                vsm.getTotalLeadTime(),
+                vsm);
+        leadTimeService.calculateTotalLeadTime(vsm.getTotalLeadTime(), vsm);
         vsmRepo.save(vsm);
 
         return dtos;
@@ -89,6 +100,16 @@ public class ProcessTableService {
                 createTotalAvailableTimeRow(processTableToUpdate, vsm);
         totalAvailableTimeRow.ifPresent(tableRow -> processTableToUpdate.getRows().add(tableRow));
         processTableRepository.save(processTableToUpdate);
+        vsm.getTotalLeadTime().getLeadTimes().clear();
+        var leadTimesMap =
+                LeadTimeUtils.createLeadTimesMap(vsm.getProcessTables().stream().toList(), vsm);
+        LeadTimeUtils.createLeadTimes(
+                leadTimesMap,
+                vsm.getProcessTables().stream().toList(),
+                vsm.getTotalLeadTime(),
+                vsm);
+        leadTimeService.calculateTotalLeadTime(vsm.getTotalLeadTime(), vsm);
+        vsmRepo.save(vsm);
         return processTableDTO;
     }
 
@@ -154,6 +175,15 @@ public class ProcessTableService {
             lastPT.getInventory().setNextInPosition(processTableToSave.getId());
         }
         vsm.getProcessTables().add(processTableToSave);
+        vsm.getTotalLeadTime().getLeadTimes().clear();
+        var leadTimesMap =
+                LeadTimeUtils.createLeadTimesMap(vsm.getProcessTables().stream().toList(), vsm);
+        LeadTimeUtils.createLeadTimes(
+                leadTimesMap,
+                vsm.getProcessTables().stream().toList(),
+                vsm.getTotalLeadTime(),
+                vsm);
+        leadTimeService.calculateTotalLeadTime(vsm.getTotalLeadTime(), vsm);
         vsmRepo.save(vsm);
         return dto;
     }
@@ -202,6 +232,15 @@ public class ProcessTableService {
             vsm.getProcessTables().remove(toBeDeleted);
             processTableRepository.delete(toBeDeleted);
         }
+        vsm.getTotalLeadTime().getLeadTimes().clear();
+        var leadTimesMap =
+                LeadTimeUtils.createLeadTimesMap(vsm.getProcessTables().stream().toList(), vsm);
+        LeadTimeUtils.createLeadTimes(
+                leadTimesMap,
+                vsm.getProcessTables().stream().toList(),
+                vsm.getTotalLeadTime(),
+                vsm);
+        leadTimeService.calculateTotalLeadTime(vsm.getTotalLeadTime(), vsm);
         vsmRepo.save(vsm);
 
         return true;

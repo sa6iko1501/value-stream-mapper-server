@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 import tu.sofia.value_stream_mapper_server.dto.response.unit.UnitDTO;
@@ -154,24 +153,29 @@ public class VSMToDTOMapper {
                 customerOutput.getTakt());
     }
 
-    public TotalLeadTimeDTO extractTotalLeadTime(VSMObject vsm){
+    public TotalLeadTimeDTO extractTotalLeadTime(VSMObject vsm) {
         var totalLeadTime = vsm.getTotalLeadTime();
         var totalLeadTimeDTO = new TotalLeadTimeDTO();
         totalLeadTimeDTO.setId(totalLeadTime.getId());
         totalLeadTimeDTO.setValueAdded(totalLeadTime.getValueAdded());
         totalLeadTimeDTO.setLeadTime(totalLeadTime.getLeadTime());
         totalLeadTimeDTO.setLeadTimes(extractLeadTimes(totalLeadTime));
+        totalLeadTimeDTO.setValueAddedRatio(totalLeadTime.getValueAddedRatio());
         return totalLeadTimeDTO;
     }
 
-    public List<LeadTimeDTO> extractLeadTimes(TotalLeadTime totalLeadTime){
-        return totalLeadTime.getLeadTimes().stream().sorted(Comparator.comparing(LeadTime::getPosition)).map(x -> {
-            var leadTimeDTO = new LeadTimeDTO();
-            leadTimeDTO.setId(x.getId());
-            leadTimeDTO.setPosition(x.getPosition());
-            leadTimeDTO.setMatchingElement(x.getMatchingElement());
-            leadTimeDTO.setValue(x.getValue());
-            return leadTimeDTO;
-        }).collect(Collectors.toList());
+    public List<LeadTimeDTO> extractLeadTimes(TotalLeadTime totalLeadTime) {
+        return totalLeadTime.getLeadTimes().stream()
+                .sorted(Comparator.comparing(LeadTime::getPosition))
+                .map(
+                        x -> {
+                            var leadTimeDTO = new LeadTimeDTO();
+                            leadTimeDTO.setId(x.getId());
+                            leadTimeDTO.setPosition(x.getPosition());
+                            leadTimeDTO.setMatchingElement(x.getMatchingElement());
+                            leadTimeDTO.setValue(x.getValue());
+                            return leadTimeDTO;
+                        })
+                .collect(Collectors.toList());
     }
 }
