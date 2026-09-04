@@ -1,10 +1,13 @@
 /* 2026 Aleksandar Stoyanov */
 package tu.sofia.value_stream_mapper_server.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +18,11 @@ import tu.sofia.value_stream_mapper_server.dao.UnitDAO;
 import tu.sofia.value_stream_mapper_server.dao.VSMObjectDAO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.ProcessTableDTO;
 import tu.sofia.value_stream_mapper_server.models.ProcessTable;
+import tu.sofia.value_stream_mapper_server.models.RowType;
 import tu.sofia.value_stream_mapper_server.models.TableInventory;
 import tu.sofia.value_stream_mapper_server.models.TableRow;
 import tu.sofia.value_stream_mapper_server.models.Unit;
+import tu.sofia.value_stream_mapper_server.models.UnitType;
 import tu.sofia.value_stream_mapper_server.models.VSMObject;
 
 @Service
@@ -70,6 +75,7 @@ public class ProcessTableService {
     }
 
     public ProcessTableDTO updateProcessTable(ProcessTableDTO processTableDTO) {
+        var vsm = getVsm(processTableDTO.getVsmId());
         var processTableOptional = processTableRepository.findById(processTableDTO.getId());
         if (processTableOptional.isEmpty()) {
             throw new IllegalArgumentException(
@@ -78,6 +84,10 @@ public class ProcessTableService {
 
         ProcessTable processTableToUpdate = processTableOptional.get();
         applyChanges(processTableToUpdate, processTableDTO);
+
+        Optional<TableRow> totalAvailableTimeRow =
+                createTotalAvailableTimeRow(processTableToUpdate, vsm);
+        totalAvailableTimeRow.ifPresent(tableRow -> processTableToUpdate.getRows().add(tableRow));
         processTableRepository.save(processTableToUpdate);
         return processTableDTO;
     }
@@ -120,15 +130,21 @@ public class ProcessTableService {
         processTableToSave.setTitle(dto.getTitle());
         processTableToSave.setVsm(vsm);
         processTableToSave.setPosition(dto.getPosition());
-        processTableToSave.setInventory(
-                new TableInventory(
-                        UUID.randomUUID(),
-                        dto.getInventory().getAmount(),
-                        vsm.getUnit(),
-                        processTableToSave,
-                        null));
+        TableInventory tableInventory = new TableInventory();
+        tableInventory.setId(UUID.randomUUID());
+        tableInventory.setProcessTable(processTableToSave);
+        tableInventory.setNextInPosition(null);
+        tableInventory.setUnit(vsm.getUnit());
+        tableInventory.setAmount(dto.getInventory().getAmount());
+        processTableToSave.setInventory(tableInventory);
+        // TODO: calculate lead time
 
         processTableToSave.setRows(new HashSet<>(newPTableRows));
+
+        Optional<TableRow> totalAvailableTimeRow =
+                createTotalAvailableTimeRow(processTableToSave, vsm);
+        totalAvailableTimeRow.ifPresent(tableRow -> processTableToSave.getRows().add(tableRow));
+
         if (!vsm.getProcessTables().isEmpty()) {
             var lastPT =
                     vsm.getProcessTables().stream()
@@ -271,7 +287,7 @@ public class ProcessTableService {
                                                 unit,
                                                 rowDto.getRowType(),
                                                 obj);
-
+                                rowDto.setId(newRow.getId());
                                 rows.add(newRow);
                             }
                         });
@@ -290,6 +306,68 @@ public class ProcessTableService {
                         .toList();
         rows.removeAll(toBeDeleted);
         obj.getInventory().setAmount(dto.getInventory().getAmount());
+    }
+
+    public Optional<TableRow> createTotalAvailableTimeRow(
+            ProcessTable processTable, VSMObject vsm) {
+        var shifts = vsm.getShifts();
+        var lengthOfShift = vsm.getLengthOfShifts();
+        var breakTime = vsm.getBreaktime();
+
+        BigDecimal availableTimeInSeconds =
+                BigDecimal.valueOf(shifts)
+                        .multiply(BigDecimal.valueOf(lengthOfShift))
+                        .multiply(BigDecimal.valueOf(60))
+                        .multiply(BigDecimal.valueOf(60));
+        BigDecimal totalBreakTimeInSeconds =
+                breakTime != 0
+                        ? BigDecimal.valueOf(shifts)
+                                .multiply(BigDecimal.valueOf(breakTime))
+                                .multiply(BigDecimal.valueOf(60))
+                        : BigDecimal.ZERO;
+        availableTimeInSeconds = availableTimeInSeconds.subtract(totalBreakTimeInSeconds);
+        var uptime =
+                processTable.getRows().stream()
+                        .filter(x -> x.getRowType().equals(RowType.UPTIME))
+                        .findAny();
+        var changeOverTime =
+                processTable.getRows().stream()
+                        .filter(x -> x.getRowType().equals(RowType.CO))
+                        .findAny();
+        if (changeOverTime.isPresent()) {
+            var changeOverTimeInSeconds =
+                    changeOverTime.get().getUnit().getUnitType() == UnitType.HOUR
+                            ? BigDecimal.valueOf(changeOverTime.get().getValue())
+                                    .multiply(
+                                            BigDecimal.valueOf(60).multiply(BigDecimal.valueOf(60)))
+                                    .multiply(BigDecimal.valueOf(shifts))
+                            : BigDecimal.valueOf(changeOverTime.get().getValue())
+                                    .multiply(BigDecimal.valueOf(shifts));
+            availableTimeInSeconds = availableTimeInSeconds.subtract(changeOverTimeInSeconds);
+        }
+        if (uptime.isPresent()) {
+            availableTimeInSeconds =
+                    availableTimeInSeconds
+                            .multiply(BigDecimal.valueOf(uptime.get().getValue()))
+                            .divide(BigDecimal.valueOf(100), 6, RoundingMode.UP);
+        }
+
+        var secondsUnit =
+                unitRepo.findAll().stream()
+                        .filter(x -> x.getUnitType().equals(UnitType.SECOND))
+                        .findAny()
+                        .orElseThrow(
+                                () -> new IllegalStateException("Unit SECOND does not exist!"));
+        TableRow totalAvailableTimeRow =
+                new TableRow(
+                        UUID.randomUUID(),
+                        "Total available time",
+                        availableTimeInSeconds.setScale(0, RoundingMode.UP).doubleValue(),
+                        secondsUnit,
+                        RowType.TOTAL_AVAILABLE_TIME,
+                        processTable);
+
+        return Optional.of(totalAvailableTimeRow);
     }
 
     private VSMObject getVsm(UUID vsmId) {

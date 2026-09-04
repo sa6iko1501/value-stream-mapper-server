@@ -1,8 +1,8 @@
 /* 2026 Aleksandar Stoyanov */
 package tu.sofia.value_stream_mapper_server.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -30,11 +30,17 @@ public class VSMObject {
     private String title;
     private LocalDateTime date;
 
+    private int shifts;
+
+    @Column(name = "length_of_shifts")
+    private double lengthOfShifts;
+
+    private int breaktime;
+
     @ManyToOne
     @JoinColumn(name = "unit_id")
     private Unit unit;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "vsm", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProcessTable> processTables;
 
@@ -45,4 +51,8 @@ public class VSMObject {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "customer_output_id", referencedColumnName = "id")
     private CustomerOutput customerOutput;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "total_lead_time_id", referencedColumnName = "id")
+    private TotalLeadTime totalLeadTime;
 }

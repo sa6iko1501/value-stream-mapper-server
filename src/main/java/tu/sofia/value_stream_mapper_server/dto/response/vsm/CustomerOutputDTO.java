@@ -25,4 +25,7 @@ public class CustomerOutputDTO {
 
     @JsonProperty("unit")
     private String unit;
+
+    @JsonProperty("takt")
+    private Double takt;
 }

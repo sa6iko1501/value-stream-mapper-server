@@ -2,6 +2,7 @@
 package tu.sofia.value_stream_mapper_server.models;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -36,4 +37,7 @@ public class Supply {
     @ManyToOne
     @JoinColumn(name = "unit_id")
     private Unit unit;
+
+    @Column(name = "inventory_amount")
+    private Double inventoryAmount;
 }

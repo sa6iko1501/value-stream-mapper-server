@@ -6,21 +6,27 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 import tu.sofia.value_stream_mapper_server.dto.response.unit.UnitDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.CustomerDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.CustomerOutputDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.InventoryDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.LeadTimeDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.ProcessTableDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.SupplierDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.SupplyDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.TableRowDTO;
+import tu.sofia.value_stream_mapper_server.dto.response.vsm.TotalLeadTimeDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectResultDTO;
+import tu.sofia.value_stream_mapper_server.models.LeadTime;
 import tu.sofia.value_stream_mapper_server.models.ProcessTable;
 import tu.sofia.value_stream_mapper_server.models.TableInventory;
 import tu.sofia.value_stream_mapper_server.models.TableRow;
+import tu.sofia.value_stream_mapper_server.models.TotalLeadTime;
 import tu.sofia.value_stream_mapper_server.models.Unit;
 import tu.sofia.value_stream_mapper_server.models.VSMObject;
 
@@ -32,18 +38,26 @@ public class VSMToDTOMapper {
         List<ProcessTableDTO> tables = extractTables(vsm);
         String title = vsm.getTitle();
         LocalDateTime date = vsm.getDate();
+        int shifts = vsm.getShifts();
+        double lengthOfShifts = vsm.getLengthOfShifts();
+        int breakTime = vsm.getBreaktime();
         SupplyDTO supply = extractSupply(vsm);
         CustomerOutputDTO customerOutput = extractCustomerOutput(vsm);
         Unit unit = vsm.getUnit();
+        TotalLeadTimeDTO totalLeadTimeDTO = extractTotalLeadTime(vsm);
         return new VSMObjectResultDTO(
                 new VSMObjectDTO(
                         id,
                         title,
                         date,
+                        shifts,
+                        lengthOfShifts,
+                        breakTime,
                         tables,
                         supply,
                         new UnitDTO(unit.getId(), unit.getName(), unit.getUnitType()),
-                        customerOutput));
+                        customerOutput,
+                        totalLeadTimeDTO));
     }
 
     private List<ProcessTableDTO> extractTables(VSMObject vsm) {
@@ -97,7 +111,7 @@ public class VSMToDTOMapper {
             }
             result.add(rowToAdd);
         }
-        return result.stream().sorted(Comparator.comparing(TableRowDTO::getRowName)).toList();
+        return result.stream().sorted(Comparator.comparing(TableRowDTO::getRowType)).toList();
     }
 
     private SupplyDTO extractSupply(VSMObject vsm) {
@@ -113,7 +127,11 @@ public class VSMToDTOMapper {
                                                 x.getDailySupply()))
                         .toList();
         return new SupplyDTO(
-                supply.getId(), suppliers, supply.getAmount(), supply.getUnit().getName());
+                supply.getId(),
+                suppliers,
+                supply.getAmount(),
+                supply.getInventoryAmount(),
+                supply.getUnit().getName());
     }
 
     private CustomerOutputDTO extractCustomerOutput(VSMObject vsm) {
@@ -132,6 +150,28 @@ public class VSMToDTOMapper {
                 customerOutput.getId(),
                 customers,
                 customerOutput.getAmount(),
-                customerOutput.getUnit().getName());
+                customerOutput.getUnit().getName(),
+                customerOutput.getTakt());
+    }
+
+    public TotalLeadTimeDTO extractTotalLeadTime(VSMObject vsm){
+        var totalLeadTime = vsm.getTotalLeadTime();
+        var totalLeadTimeDTO = new TotalLeadTimeDTO();
+        totalLeadTimeDTO.setId(totalLeadTime.getId());
+        totalLeadTimeDTO.setValueAdded(totalLeadTime.getValueAdded());
+        totalLeadTimeDTO.setLeadTime(totalLeadTime.getLeadTime());
+        totalLeadTimeDTO.setLeadTimes(extractLeadTimes(totalLeadTime));
+        return totalLeadTimeDTO;
+    }
+
+    public List<LeadTimeDTO> extractLeadTimes(TotalLeadTime totalLeadTime){
+        return totalLeadTime.getLeadTimes().stream().sorted(Comparator.comparing(LeadTime::getPosition)).map(x -> {
+            var leadTimeDTO = new LeadTimeDTO();
+            leadTimeDTO.setId(x.getId());
+            leadTimeDTO.setPosition(x.getPosition());
+            leadTimeDTO.setMatchingElement(x.getMatchingElement());
+            leadTimeDTO.setValue(x.getValue());
+            return leadTimeDTO;
+        }).collect(Collectors.toList());
     }
 }

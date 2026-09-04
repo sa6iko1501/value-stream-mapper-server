@@ -25,6 +25,15 @@ public class VSMObjectDTO {
     @JsonProperty("date")
     private LocalDateTime date;
 
+    @JsonProperty("shifts")
+    private int shifts;
+
+    @JsonProperty("length_of_shifts")
+    private double lengthOfShifts;
+
+    @JsonProperty("breaktime")
+    private int breaktime;
+
     @JsonProperty("process_tables")
     private List<ProcessTableDTO> tables;
 
@@ -36,4 +45,7 @@ public class VSMObjectDTO {
 
     @JsonProperty("customer_output")
     private CustomerOutputDTO customerOutput;
+
+    @JsonProperty("total_lead_time")
+    private TotalLeadTimeDTO leadTime;
 }

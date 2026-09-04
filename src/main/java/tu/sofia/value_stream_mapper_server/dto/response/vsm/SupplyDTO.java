@@ -21,6 +21,9 @@ public class SupplyDTO {
     @JsonProperty("amount")
     private Double amount;
 
+    @JsonProperty("inventory_amount")
+    private Double inventoryAmount;
+
     @JsonProperty("unit")
     private String unit;
 }

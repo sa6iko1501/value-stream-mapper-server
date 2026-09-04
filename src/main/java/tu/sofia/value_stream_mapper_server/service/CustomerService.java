@@ -1,6 +1,8 @@
 /* 2026 Aleksandar Stoyanov */
 package tu.sofia.value_stream_mapper_server.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.UUID;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,7 @@ public class CustomerService {
                         });
 
         customerOutput.setAmount(calculateTotalRequirement(customerOutput));
+        customerOutput.setTakt(calculateTakt(customerOutput, vsm));
         vsmRepo.save(vsm);
 
         return dto;
@@ -67,6 +70,7 @@ public class CustomerService {
                         });
 
         customerOutput.setAmount(calculateTotalRequirement(customerOutput));
+        customerOutput.setTakt(calculateTakt(customerOutput, vsm));
         customerOutput.setUnit(vsm.getUnit());
         vsmRepo.save(vsm);
         return dto;
@@ -92,6 +96,7 @@ public class CustomerService {
         boolean deleted = customers.remove(toBeDeleted);
 
         vsm.getCustomerOutput().setAmount(calculateTotalRequirement(vsm.getCustomerOutput()));
+        vsm.getCustomerOutput().setTakt(calculateTakt(vsm.getCustomerOutput(), vsm));
 
         vsmRepo.save(vsm);
         return deleted;
@@ -115,5 +120,28 @@ public class CustomerService {
         }
 
         return totalRequirement;
+    }
+
+    public double calculateTakt(CustomerOutput customerOutput, VSMObject vsm) {
+        var shifts = vsm.getShifts();
+        var breakTime = vsm.getBreaktime();
+        var lengthOfShifts = vsm.getLengthOfShifts();
+
+        BigDecimal availableTimeInSeconds =
+                BigDecimal.valueOf(shifts)
+                        .multiply(BigDecimal.valueOf(lengthOfShifts))
+                        .multiply(BigDecimal.valueOf(60))
+                        .multiply(BigDecimal.valueOf(60));
+        BigDecimal totalBreakTimeInSeconds =
+                breakTime != 0
+                        ? BigDecimal.valueOf(shifts)
+                                .multiply(BigDecimal.valueOf(breakTime))
+                                .multiply(BigDecimal.valueOf(60))
+                        : BigDecimal.ZERO;
+        availableTimeInSeconds = availableTimeInSeconds.subtract(totalBreakTimeInSeconds);
+        BigDecimal dailyReq = BigDecimal.valueOf(calculateTotalRequirement(customerOutput));
+        BigDecimal perSecondReq = dailyReq.divide(availableTimeInSeconds, 6, RoundingMode.UP);
+        BigDecimal secPerUnit = BigDecimal.ONE.divide(perSecondReq, 2, RoundingMode.UP);
+        return secPerUnit.doubleValue();
     }
 }

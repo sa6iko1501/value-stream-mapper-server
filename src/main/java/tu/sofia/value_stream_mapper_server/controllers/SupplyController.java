@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import tu.sofia.value_stream_mapper_server.dto.request.SupplyInventoryDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.SupplyDTO;
 import tu.sofia.value_stream_mapper_server.service.SupplyService;
 
@@ -54,6 +55,18 @@ public class SupplyController {
         try {
             var result = supplyService.deleteSupplier(id, supplierId);
             return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PutMapping(value = "/vsm/{id}/supply/inventory", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> updateSupplyInventory(
+            @PathVariable UUID id, @RequestBody SupplyInventoryDTO request) {
+        try {
+            var result = supplyService.updateSupplyInventory(id, request);
+            return ResponseEntity.ok(result);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import tu.sofia.value_stream_mapper_server.dto.request.VSMSettingsRequestDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.ProcessTableDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMDashboardResultDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.VSMObjectDTO;
@@ -91,6 +92,18 @@ public class VSMController {
         try {
             var result = vsmService.deleteVSM(id);
             return ResponseEntity.noContent().build();
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PutMapping(value = "/vsm/{id}/settings", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> updateVsmSettings(
+            @PathVariable UUID id, @RequestBody VSMSettingsRequestDTO request) {
+        try {
+            var result = vsmService.updateSettings(id, request);
+            return ResponseEntity.ok(result);
         } catch (IllegalStateException | IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }

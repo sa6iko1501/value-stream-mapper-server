@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tu.sofia.value_stream_mapper_server.dao.VSMObjectDAO;
+import tu.sofia.value_stream_mapper_server.dto.request.SupplyInventoryDTO;
 import tu.sofia.value_stream_mapper_server.dto.response.vsm.SupplyDTO;
 import tu.sofia.value_stream_mapper_server.models.Supplier;
 import tu.sofia.value_stream_mapper_server.models.Supply;
@@ -13,6 +14,14 @@ import tu.sofia.value_stream_mapper_server.models.VSMObject;
 @Service
 public class SupplyService {
     @Autowired private VSMObjectDAO vsmRepo;
+
+    public SupplyInventoryDTO updateSupplyInventory(UUID vsmId, SupplyInventoryDTO dto) {
+        var vsm = getVsm(vsmId);
+
+        vsm.getSupply().setInventoryAmount(dto.getSupplyInventory());
+        vsmRepo.save(vsm);
+        return dto;
+    }
 
     public SupplyDTO createSupplier(UUID vsmId, SupplyDTO dto) {
         final var vsm = getVsm(vsmId);

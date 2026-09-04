@@ -36,4 +36,6 @@ public class CustomerOutput {
     @ManyToOne
     @JoinColumn(name = "unit_id")
     private Unit unit;
+
+    private Double takt;
 }
